@@ -29,6 +29,29 @@ WITH MOVE 'CarRentalDB_Data' TO 'C:\SQLData\CarRentalDB.mdf',  -- CONFIGURE ACCO
 GO
 
 */
+
+/*
+
+-- IN ORDER TO ACQUIRE A BACKUP FILE RUN THE FOLLOWING SCRIPT:
+
+BACKUP DATABASE CarRentalDB
+TO DISK = 'C:\Backup\CarRentalDB_FULL.bak'											 -- REPLACE WITH THE DESIRED PATH
+WITH FORMAT, MEDIANAME = 'CarRentalBackup', NAME = 'Full Backup of CarRentalDB';
+
+*/
+
+/*
+
+-- IN ORDER TO RESTORE DATABASE RUN THE FOLLOWING SCRIPT: 
+
+RESTORE DATABASE CarRentalDB
+FROM DISK = 'C:\Backup\CarRentalDB_FULL.bak'                                        -- REPLACE WITH YOUR PATH
+WITH MOVE 'CarRentalDB_Data' TO 'C:\SQLData\CarRentalDB.mdf',                       -- REPLACE WITH YOUR PATH
+     MOVE 'CarRentalDB_Log' TO 'C:\SQLData\CarRentalDB.ldf',						-- REPLACE WITH YOUR PATH
+     REPLACE;
+
+*/
+
 --------------------------------CREATING TABLES----------------------------------------------
 
 CREATE TABLE Branches (
