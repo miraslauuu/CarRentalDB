@@ -258,8 +258,108 @@ CREATE NONCLUSTERED INDEX IX_CustomerHistory_CustomerID ON CustomerHistory(Custo
 CREATE NONCLUSTERED INDEX IX_CustomerHistory_ReservationID ON CustomerHistory(ReservationID);
 GO
 
+-------------------------------- TABLE DESCRIPTIONS ----------------------------------------------
 
---------------------------------CREATING TRIGGERS----------------------------------------------
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o oddziałach wypożyczalni samochodów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Branches';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o rolach użytkowników w systemie', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Roles';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o pracownikach wypożyczalni samochodów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Employees';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje typy pojazdów, np. sedan, SUV, kombi', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'VehicleType';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o pojazdach dostępnych w wypożyczalni', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Vehicles';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o ubezpieczeniach pojazdów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Insurance';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o serwisach pojazdów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Services';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o przeglądach technicznych pojazdów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'VehicleInspection';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o klientach wypożyczalni samochodów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Customers';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o rezerwacjach pojazdów', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Reservations';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o płatnościach związanych z rezerwacjami', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Payments';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje historię działań klientów, takich jak rezerwacje i anulowania', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'CustomerHistory';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o użytkownikach systemu, w tym hasła i role', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Users';
+GO
+
+EXEC sp_addextendedproperty 
+    @name = N'MS_Description', 
+    @value = N'Tabela przechowuje informacje o operacjach wykonywanych w systemie', 
+    @level0type = N'SCHEMA', @level0name = N'dbo', 
+    @level1type = N'TABLE',  @level1name = N'Logs';
+GO
+
+
+-------------------------------- CREATING TRIGGERS ----------------------------------------------
 
 DROP TRIGGER IF EXISTS trg_UpdateModifiedDate_Branches;
 DROP TRIGGER IF EXISTS trg_UpdateModifiedDate_CustomerHistory;
@@ -836,6 +936,35 @@ BEGIN
 END;
 GO
 
+
+-------------------------------- FUNCTIONS ----------------------------------------------
+
+
+			          -- GET RESERVATION DURATION --
+
+CREATE FUNCTION dbo.GetReservationDuration
+(
+    @ReservationID INT
+)
+RETURNS INT
+AS
+BEGIN
+    DECLARE @Duration INT;
+
+    SELECT @Duration = DATEDIFF(DAY, StartDate, EndDate)
+    FROM Reservations
+    WHERE ReservationID = @ReservationID;
+
+    RETURN @Duration;
+END;
+GO
+
+SELECT dbo.GetReservationDuration(1) AS ReservationDurationInDays;
+
+GO
+
+
+
 --------------------------------CREATING ROLES AND ASSIGNING PERMISSIONS----------------------------------------------
 
 CREATE LOGIN AdminLogin WITH PASSWORD = 'Admin123!';
@@ -1033,7 +1162,7 @@ FROM Users U
 JOIN Roles R ON U.UserID = R.RoleID;
 
 
-									-- LISTA REZERWACJI Z PŁATNOŚCIAMI --
+									-- RESERVATIONS LIST WITH PAYMENTS --
 
 
 SELECT 
@@ -1046,4 +1175,47 @@ SELECT
 FROM Payments P
 JOIN Reservations R ON P.ReservationID = R.ReservationID
 JOIN Customers C ON R.CustomerID = C.CustomerID;
+GO
+
+
+-------------------------------- VIEWS ----------------------------------------------
+
+
+
+									-- ALL RESERVATIONS WITH CLIENTS --
+
+
+CREATE VIEW vw_AllReservations AS
+SELECT 
+    R.ReservationID,
+    C.FirstName + ' ' + C.LastName AS CustomerName,
+    V.RegistrationNumber,
+    R.StartDate,
+    R.EndDate,
+    R.TotalAmount,
+    R.ReservationStatus
+FROM Reservations R
+JOIN Customers C ON R.CustomerID = C.CustomerID
+JOIN Vehicles V ON R.VehicleID = V.VehicleID;
+GO
+
+SELECT * FROM vw_AllReservations;
+GO
+
+
+									-- TOP CLIENTS --
+
+
+CREATE VIEW vw_TopCustomers AS
+SELECT 
+    C.FirstName + ' ' + C.LastName AS CustomerName,
+    COUNT(R.ReservationID) AS TotalReservations
+FROM Customers C
+JOIN Reservations R ON C.CustomerID = R.CustomerID
+GROUP BY C.FirstName, C.LastName;
+GO
+
+SELECT *
+FROM vw_TopCustomers
+ORDER BY TotalReservations DESC;
 
